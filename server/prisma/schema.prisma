@@ -1,0 +1,206 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  pending
+  accepted
+  rejected
+  preparing
+  onTheWay
+  delivered
+  completed
+}
+
+model AdminUser {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+
+  @@map(name: "admins")
+}
+
+model User {
+  id               Int       @id @default(autoincrement())
+  name             String    @db.VarChar(255)
+  email            String    @unique
+  photo            String?   @default("https://www.gravatar.com/avatar/{{email}}?d=identicon")
+  verified         Boolean?  @default(false)
+  phone            String    @unique
+  birthday         DateTime?
+  verificationCode String?   @unique @default(uuid()) @db.Text
+  password         String
+  createdAt        DateTime? @default(now())
+  updatedAt        DateTime? @updatedAt
+  Addresses        Address[]
+  Vouchers         Voucher[]
+  Orders           Order[]
+  Basket           Basket?
+  Ratings          Rating[]
+
+  @@unique([email, verificationCode])
+  @@index([email, verificationCode])
+  @@map(name: "users")
+}
+
+model RestaurantUser {
+  id         Int         @id @default(autoincrement())
+  name       String      @unique
+  email      String      @unique
+  photo      String?     @default("https://www.gravatar.com/avatar/{{email}}?d=identicon")
+  verified   Boolean?    @default(false)
+  phone      String      @unique
+  password   String
+  Restaurant Restaurant?
+  createdAt  DateTime?   @default(now())
+  updatedAt  DateTime?   @updatedAt
+
+  @@map(name: "restaurant_users")
+}
+
+model Restaurant {
+  id               Int            @id @default(autoincrement())
+  RestaurantUser   RestaurantUser @relation(fields: [restaurantUserId], references: [id])
+  restaurantUserId Int            @unique
+  name             String         @unique
+  photo            String?        @default("https://www.gravatar.com/avatar/{{email}}?d=identicon")
+  phone            String         @unique
+  address          String
+  Orders           Order[]
+  Menus            Menu[]
+  Foods            Food[]
+  Ratings          Rating[]
+
+  @@map(name: "restaurants")
+}
+
+model Menu {
+  id           Int        @id @default(autoincrement())
+  name         String     @unique
+  photo        String?    @default("https://www.gravatar.com/avatar/{{email}}?d=identicon")
+  Foods        Food[]
+  Restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+
+  @@map(name: "menus")
+}
+
+model Address {
+  id        Int       @id @default(autoincrement())
+  User      User?     @relation(fields: [userId], references: [id])
+  userId    Int?
+  address   String    @db.Text
+  city      String    @db.VarChar(255)
+  state     String    @db.VarChar(255)
+  country   String    @db.VarChar(255)
+  zip       String    @db.VarChar(255)
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+
+  @@map(name: "addresses")
+}
+
+model Voucher {
+  id          Int        @id @default(autoincrement())
+  User        User       @relation(fields: [userId], references: [id])
+  userId      Int
+  name        String     @db.VarChar(255)
+  description String?    @db.Text
+  code        String     @unique @db.Text
+  discount    Int        @default(0) @db.Integer
+  active      Boolean    @default(true) @db.Boolean
+  minAmount   Int        @default(0) @db.Integer
+  Categories  Category[]
+  createdAt   DateTime?  @default(now())
+  expiredAt   DateTime   @db.Timestamp
+  updatedAt   DateTime?  @updatedAt
+
+  @@map(name: "vouchers")
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique @db.VarChar(255)
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+  Foods     Food[]
+  Voucher   Voucher?  @relation(fields: [voucherId], references: [id])
+  voucherId Int?
+
+  @@map(name: "categories")
+}
+
+model Food {
+  id           Int         @id @default(autoincrement())
+  name         String      @unique @db.VarChar(255)
+  price        Int?        @default(0) @db.Integer
+  description  String?     @db.Text
+  photo        String?     @default("https://www.gravatar.com/avatar/{{name}}?d=identicon") @db.Text
+  Category     Category    @relation(fields: [categoryId], references: [id])
+  categoryId   Int         @db.Integer
+  Baskets      Basket[]
+  stock        Int?        @default(0) @db.Integer
+  createdAt    DateTime?   @default(now())
+  updatedAt    DateTime?   @updatedAt
+  Order        Order?      @relation(fields: [orderId], references: [id])
+  orderId      Int?
+  Menu         Menu?       @relation(fields: [menuId], references: [id])
+  menuId       Int?
+  Restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
+  restaurantId Int?
+  @@map(name: "foods")
+}
+
+model Order {
+  id           Int         @id @default(autoincrement())
+  User         User        @relation(fields: [userId], references: [id])
+  userId       Int
+  Restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+  Foods        Food[]
+  amount       Int?        @default(0) @db.Integer
+  status       OrderStatus @default(pending)
+  createdAt    DateTime?   @default(now())
+  updatedAt    DateTime?   @updatedAt
+  Ratings      Rating[]
+
+  @@map(name: "orders")
+}
+
+model Basket {
+  id        Int       @id @default(autoincrement())
+  User      User      @relation(fields: [userId], references: [id])
+  userId    Int       @unique
+  Foods     Food[]
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+  amount    Int?      @default(0) @db.Integer
+
+  @@map(name: "baskets")
+}
+
+model Rating {
+  id           Int        @id @default(autoincrement())
+  User         User       @relation(fields: [userId], references: [id])
+  userId       Int
+  Restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+  rating       Int        @default(0) @db.Integer
+  review       String?    @db.Text
+  Order        Order?     @relation(fields: [orderId], references: [id])
+  orderId      Int
+  createdAt    DateTime?  @default(now())
+  updatedAt    DateTime?  @updatedAt
+
+  @@map(name: "ratings")
+}

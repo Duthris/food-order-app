@@ -1,6 +1,6 @@
 # Full Stack Food Order App similar to yemeksepeti.
 
-# Used techs and tools are Typescript NodeJS, Typescript React, Redux toolkit, Express, Axios, Prisma ORM, PostgreSQL, Docker, Nginx, LiveChat.
+# Used techs and tools are Typescript NodeJS, Typescript React, Redux toolkit, Express, Axios, Prisma ORM, PostgreSQL, Docker, Nginx, Google API, LiveChat.
 
 # PrimeFaces, Tailwind, and material-ui are used ui design framework and component libraries.
 

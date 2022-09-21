@@ -41,7 +41,7 @@ export const getUser = async (req: Request, res: Response) => {
 
 export const userRegister = async (req: Request, res: Response ) => {
     try {
-        const { email, password: enteredPassword, name, phone, birthday } = req.body;
+        const { email, password: enteredPassword, name, phone } = req.body;
 
         const user = await prisma.user.findUnique({
             where: {
@@ -65,8 +65,7 @@ export const userRegister = async (req: Request, res: Response ) => {
                 email,
                 name,
                 verificationCode: code[0],
-                phone,
-                birthday: new Date(birthday)
+                phone
             }
         });
 
@@ -78,6 +77,7 @@ export const userRegister = async (req: Request, res: Response ) => {
                 state: "",
                 zip: "",
                 country: "",
+                name: ""
             }
         });
 
@@ -324,17 +324,9 @@ export const userForgotPassword = async (req: Request, res: Response) => {
 
 export const addAddress = async (req: Request, res: Response) => {
     try {
-        const { address, city, state, country, zip } = req.body;
+        const { address, city, state, country, zip, name } = req.body;
 
         const id = getIdFromToken(req);
-
-        const user = await prisma.user.findUnique({
-            where: {
-                id: id
-            }
-        })
-
-        if (!user) throw new BadRequestError('Invalid credentials');
 
         await prisma.address.create({
             data: {
@@ -343,7 +335,8 @@ export const addAddress = async (req: Request, res: Response) => {
                 city,
                 state,
                 country,
-                zip
+                zip,
+                name
             }
         })
 
@@ -481,14 +474,15 @@ export const getAddresses = async (req: Request, res: Response) => {
 
 export const getVouchers = async (req: Request, res: Response) => {
     try {
-        const id = getIdFromToken(req);
 
-        const vouchers = await prisma.user.findUnique({
+        const userId = getIdFromToken(req);
+        
+        const vouchers = await prisma.voucher.findMany({
             where: {
-                id: Number(id)
+                userId: Number(userId)
             },
-            include: {
-                Vouchers: true
+            orderBy: {
+                createdAt: 'desc'
             }
         })
 
@@ -536,9 +530,6 @@ export const addRatingToRetaurantForCompletedOrder = async (req: Request, res: R
             where: {
                 id: Number(id),
                 userId: Number(userId)
-            }, 
-            include: {
-                Foods: true
             }
         })        
 
@@ -616,6 +607,89 @@ export const getRatingsForRestaurant = async (req: Request, res: Response) => {
         })
 
         res.status(200).json({ success: true, data: ratings })
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
+    }
+}
+
+export const getRestaurants = async (req: Request, res: Response) => {
+    try {
+        const restaurants = await prisma.restaurant.findMany({
+            include: {
+                Foods: true,
+                Ratings: true
+            }
+        })
+
+        if (!restaurants) throw new BadRequestError('No restaurants found');
+
+        res.status(200).json({ success: true, data: restaurants })
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
+    }
+}
+
+export const getRestaurantsByAddressCloseToUserAddress = async (req: Request, res: Response) => {
+    try {
+        const id = getIdFromToken(req);
+
+        const user = await prisma.user.findUnique({
+            where: {
+                id: Number(id)
+            }
+        })
+
+        if (!user) throw new BadRequestError('User not found');
+
+        const restaurants = await prisma.restaurant.findMany({
+            where: {
+                address: {
+                    
+                }
+            },
+            include: {
+                Foods: true
+            }
+        })
+
+        if (!restaurants) throw new BadRequestError('No restaurants found');
+
+        res.status(200).json({ success: true, data: restaurants })
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
+    }
+}
+
+export const getRestaurantsByTheirFoodsCategories = async (req: Request, res: Response) => {
+    try {
+        const { categoryId } = req.params;
+
+        const restaurants = await prisma.restaurant.findMany({
+            where: {
+                Foods: {
+                    some: {
+                        categoryId: Number(categoryId)
+                    }
+                }
+            },
+            include: {
+                Foods: true,
+                Ratings: true
+            }
+        })
+
+        if (!restaurants) throw new BadRequestError('No restaurants found');
+
+        res.status(200).json({ success: true, data: restaurants })
     } catch (e) {
         let message;
         if (e instanceof Error) message = e.message;

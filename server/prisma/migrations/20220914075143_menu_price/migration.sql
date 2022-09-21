@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "menus" ADD COLUMN     "menuPrice" DOUBLE PRECISION NOT NULL DEFAULT 0;

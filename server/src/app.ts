@@ -13,13 +13,16 @@ import errorHandler from './middlewares/error.handler';
 import { NotFoundError } from './errors/not-found-error';
 import helmet from 'helmet';
 import 'express-async-errors';
+var cors = require('cors')
 
 const port = process.env.PORT || 3001;
 const app: Application = express();
-
+app.use(cors())
 app.use(express.json())
 app.use(errorHandler);
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: false,
+}));
 app.set("trust proxy", true);
 app.use(helmet.contentSecurityPolicy());
 app.use(helmet.dnsPrefetchControl());

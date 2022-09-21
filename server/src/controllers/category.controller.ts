@@ -6,6 +6,8 @@ export const getCategory = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
+        console.log(req.headers.authorization)
+
         const category = await prisma.category.findUnique({
             where: {
                 id: Number(id)
@@ -38,6 +40,7 @@ export const getCategories = async (req: Request, res: Response) => {
         let message;
         if (e instanceof Error) message = e.message;
         else message = String(e);
+        console.log(message)
         res.status(400).json({ success: false, message });
     }
 }

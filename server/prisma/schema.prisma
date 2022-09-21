@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl", "debian-openssl-1.1.x", "darwin"]
 }
 
 datasource db {
@@ -61,6 +62,7 @@ model RestaurantUser {
   verified   Boolean?    @default(false)
   phone      String      @unique
   password   String
+  address    String      @db.VarChar(255) @default("")
   Restaurant Restaurant?
   createdAt  DateTime?   @default(now())
   updatedAt  DateTime?   @updatedAt
@@ -72,14 +74,15 @@ model Restaurant {
   id               Int            @id @default(autoincrement())
   RestaurantUser   RestaurantUser @relation(fields: [restaurantUserId], references: [id])
   restaurantUserId Int            @unique
-  name             String         @unique
+  name             String?
   photo            String?        @default("https://www.gravatar.com/avatar/{{email}}?d=identicon")
-  phone            String         @unique
-  address          String
+  phone            String?
+  address          String?
   Orders           Order[]
   Menus            Menu[]
   Foods            Food[]
   Ratings          Rating[]
+  Categories       Category[]
 
   @@map(name: "restaurants")
 }
@@ -91,6 +94,10 @@ model Menu {
   Foods        Food[]
   Restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
   restaurantId Int
+  menuPrice    Int        @default(0)
+  description  String?
+  Baskets      Basket[]
+  Orders       Order[]
 
   @@map(name: "menus")
 }
@@ -99,6 +106,7 @@ model Address {
   id        Int       @id @default(autoincrement())
   User      User?     @relation(fields: [userId], references: [id])
   userId    Int?
+  name      String    @unique
   address   String    @db.Text
   city      String    @db.VarChar(255)
   state     String    @db.VarChar(255)
@@ -106,6 +114,7 @@ model Address {
   zip       String    @db.VarChar(255)
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
+  Orders    Order[]
 
   @@map(name: "addresses")
 }
@@ -129,13 +138,15 @@ model Voucher {
 }
 
 model Category {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique @db.VarChar(255)
-  createdAt DateTime? @default(now())
-  updatedAt DateTime? @updatedAt
-  Foods     Food[]
-  Voucher   Voucher?  @relation(fields: [voucherId], references: [id])
-  voucherId Int?
+  id          Int          @id @default(autoincrement())
+  name        String       @unique @db.VarChar(255)
+  createdAt   DateTime?    @default(now())
+  photo       String?      @default("https://www.gravatar.com/avatar/{{email}}?d=identicon")
+  updatedAt   DateTime?    @updatedAt
+  Foods       Food[]
+  Voucher     Voucher?     @relation(fields: [voucherId], references: [id])
+  voucherId   Int?
+  Restaurants Restaurant[]
 
   @@map(name: "categories")
 }
@@ -152,12 +163,12 @@ model Food {
   stock        Int?        @default(0) @db.Integer
   createdAt    DateTime?   @default(now())
   updatedAt    DateTime?   @updatedAt
-  Order        Order?      @relation(fields: [orderId], references: [id])
-  orderId      Int?
   Menu         Menu?       @relation(fields: [menuId], references: [id])
   menuId       Int?
   Restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
   restaurantId Int?
+  Orders       Order[]
+
   @@map(name: "foods")
 }
 
@@ -167,12 +178,15 @@ model Order {
   userId       Int
   Restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
   restaurantId Int
-  Foods        Food[]
   amount       Int?        @default(0) @db.Integer
   status       OrderStatus @default(pending)
   createdAt    DateTime?   @default(now())
   updatedAt    DateTime?   @updatedAt
   Ratings      Rating[]
+  Address      Address?    @relation(fields: [addressId], references: [id])
+  addressId    Int?
+  Foods        Food[] // TODO
+  Menus        Menu[] // TODO
 
   @@map(name: "orders")
 }
@@ -182,6 +196,7 @@ model Basket {
   User      User      @relation(fields: [userId], references: [id])
   userId    Int       @unique
   Foods     Food[]
+  Menus     Menu[]
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
   amount    Int?      @default(0) @db.Integer

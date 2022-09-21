@@ -10,31 +10,34 @@ export const convertBasketToOrder = async (req: Request, res: Response) => {
     try {
         const id = getIdFromToken(req);
 
+        const { addressId, code } = req.body;
+
         const basket = await prisma.basket.findUnique({
             where: {
                 userId: Number(id)
             }, 
             include: {
-                Foods: true
+                Foods: true,
+                Menus: true
             }
         })
 
         if (!basket) throw new BadRequestError('Basket not found');
         if (basket.userId !== id) throw new NotAuthorizedError();
 
-        if (basket.Foods.length === 0) throw new BadRequestError('No foods in basket');
-
-        const restaurantId = basket.Foods[0].restaurantId;
+        const restaurantId = basket.Foods[0] ? basket.Foods[0].restaurantId : basket.Menus[0].restaurantId;
 
         const order = await prisma.order.create({
             data: {
                 userId: Number(id),
                 amount: basket.amount,
                 restaurantId: Number(restaurantId),
+                addressId: Number(addressId),
                 Foods: {
-                    connect: basket.Foods.map((food: any) => ({
-                        id: Number(food.id)
-                    }))
+                    connect: basket.Foods.map(food => ({ id: food.id }))
+                },
+                Menus: {
+                    connect: basket.Menus.map(menu => ({ id: menu.id }))
                 }
             }
         })
@@ -50,8 +53,40 @@ export const convertBasketToOrder = async (req: Request, res: Response) => {
                         id: Number(food.id)
                     }))
                 },
+                Menus: {
+                    disconnect: basket.Menus.map((menu: any) => ({
+                        id: Number(menu.id)
+                    }))
+                }
+            },
+            include: {
+                Foods: true,
+                Menus: true
             }
         })
+
+        if (code) {
+            const voucher = await prisma.voucher.findUnique({
+                where: {
+                    code
+                }
+            })
+    
+            if (!voucher) throw new BadRequestError('Voucher not found');
+    
+            if (voucher.active === false) throw new BadRequestError('Voucher is not active');
+    
+            if (voucher.expiredAt < new Date()) throw new BadRequestError('Voucher has expired');
+    
+            await prisma.voucher.update({
+                where: {
+                    code
+                },
+                data: {
+                    active: false
+                }
+            })
+        }
         
 
         res.status(200).json({ success: true, data: order, updatedBasket })
@@ -71,12 +106,23 @@ export const getOrders = async (req: Request, res: Response) => {
         const orders = await prisma.order.findMany({
             where: {
                 userId: Number(id)
-            },
+            }, 
             include: {
-                Foods: true
-            }
-        })
-
+                User: {
+                    select: {
+                        Basket: {
+                            select: {
+                                Foods: true
+                            }
+                        }
+                },
+            },
+            Restaurant: true,
+        },
+        orderBy: {
+            createdAt: 'desc'
+        }
+    })
         res.status(200).json({ success: true, data: orders })
 
     } catch (e) {
@@ -96,9 +142,6 @@ export const getOrder = async (req: Request, res: Response) => {
             where: {
                 id: Number(orderId)
             },
-            include: {
-                Foods: true
-            }
         })
 
         if (!order) throw new BadRequestError('Order not found');
@@ -123,9 +166,6 @@ export const getOrdersByRestaurant = async (req: Request, res: Response) => {
                 restaurantId: Number(restaurantId),
                 userId: Number(id)
             },
-            include: {
-                Foods: true
-            }
         })
 
         if (!orders) throw new BadRequestError('Order not found');

@@ -4,7 +4,7 @@ import {
     restaurantRegister, restaurantLogin, deleteRestaurant, getRestaurant, 
     getRestaurantOrder, updateRestaurant, createFood, updateFood, deleteFood,
     createMenu, updateMenu, deleteMenu, addFoodToMenu, getRestaurantMenusByRestaurant, 
-    removeFoodFromMenu, updateOrderStatus, getRestaurantOrdersByRestaurant
+    removeFoodFromMenu, updateOrderStatus, getRestaurantOrdersByRestaurant, getAverageRating
 } from '../controllers/restaurant.controller';
 import { validateRequest } from '../middlewares/validate.request';
 import { isAuthenticated } from '../middlewares/is.authenticated';
@@ -24,7 +24,7 @@ router.delete('/delete-restaurant', isAuthenticated, isRestaurant, validateReque
 router.get('/restaurant', isAuthenticated, isRestaurant, getRestaurant );
 router.get('/restaurant-orders/:id', isAuthenticated, isRestaurant, getRestaurantOrder );
 router.put('/update-restaurant', isAuthenticated, isRestaurant, validateRequest, updateRestaurant );
-router.post('/add-food', isAuthenticated, isRestaurant, validateRequest, createFood);
+router.post('/create-food', isAuthenticated, isRestaurant, validateRequest, createFood);
 router.put('/update-food', isAuthenticated, isRestaurant, validateRequest, updateFood);
 router.delete('/delete-food/:id', isAuthenticated, isRestaurant, validateRequest, deleteFood);
 router.post('/create-menu', isAuthenticated, isRestaurant, validateRequest, createMenu);
@@ -35,5 +35,6 @@ router.get('/get-restaurant-menus', isAuthenticated, isRestaurant, getRestaurant
 router.delete('/remove-food-from-menu', isAuthenticated, isRestaurant, validateRequest, removeFoodFromMenu);
 router.put('/update-order-status', isAuthenticated, isRestaurant, validateRequest, updateOrderStatus);
 router.get('/restaurant-orders', isAuthenticated, isRestaurant, getRestaurantOrdersByRestaurant);
+router.get('/average-rating/:restaurantId', getAverageRating);
 
 export default router;

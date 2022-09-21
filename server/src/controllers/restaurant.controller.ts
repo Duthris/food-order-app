@@ -8,7 +8,7 @@ import { NotAuthorizedError } from './../errors/not-authorized-error';
 
 export const restaurantRegister = async (req: Request, res: Response) => {
     try {
-        const { name, email, phone, password: enteredPassword } = req.body;
+        const { name, email, phone, password: enteredPassword, address, photo } = req.body;
 
         const restaurantUser = await prisma.restaurantUser.findUnique({
             where: {
@@ -16,7 +16,7 @@ export const restaurantRegister = async (req: Request, res: Response) => {
             }
         });
     
-        if (restaurantUser) throw new BadRequestError('User already exists');
+        if (restaurantUser) throw new BadRequestError('Restaurant already exists');
 
         const hash = await hashPassword(enteredPassword);
         const newRestaurantUser = await prisma.restaurantUser.create({
@@ -24,35 +24,30 @@ export const restaurantRegister = async (req: Request, res: Response) => {
                 password: hash,
                 name,
                 email,
-                phone
+                phone,
+                address,
+                photo
             }
         });
 
         const restaurant = await prisma.restaurant.create({
             data: {
                 restaurantUserId: newRestaurantUser.id,
-                name: "",
-                photo: "",
-                phone: "",
-                address: "",
+                name: newRestaurantUser.name,
+                photo: newRestaurantUser.photo,
+                phone: newRestaurantUser.phone,
+                address: newRestaurantUser.address,
             }
         });
 
-        const menu = await prisma.menu.create({
-            data: {
-                restaurantId: restaurant.id,
-                name: "",
-                photo: ""
-            }
-        })
-
-        const token = generateToken(newRestaurantUser);
+        const token = generateToken(newRestaurantUser, 'restaurant');
 
         return res.status(200).json({ 
             success: true, 
             data: { 
-                token, user: newRestaurantUser, restaurant: restaurant, menu: menu 
+                token, user: newRestaurantUser, restaurant: restaurant 
         } });
+
     } catch (e) {
         let message;
         if (e instanceof Error) message = e.message;
@@ -69,7 +64,7 @@ export const restaurantLogin = async (req: Request, res: Response) => {
                 email
             }
         });
-        if (!restaurantUser) throw new BadRequestError('User not found');
+        if (!restaurantUser) throw new BadRequestError('Invalid credentials');
         else if (!restaurantUser.verified) throw new BadRequestError('You need to verify your account to login!');
         const passwordsMatch = await comparePassword(enteredPassword, restaurantUser.password);
         if (!passwordsMatch) throw new BadRequestError('Invalid password');
@@ -190,9 +185,6 @@ export const getRestaurantOrdersByRestaurant = async (req: Request, res: Respons
             where: {
                 restaurantId: restaurant.id
             }, 
-            include: {
-                Foods: true
-            },
             orderBy: {
                 createdAt: 'desc'
             }
@@ -243,19 +235,32 @@ export const createMenu = async (req: Request, res: Response) => {
     try {
         const id = getIdFromToken(req);
 
-        const { name } = req.body;
+        const { name, menuPrice, foods } = req.body;
 
         const restaurant = await prisma.restaurant.findUnique({
             where: {
-                id: id
+                restaurantUserId: id
             }
         });
         if (!restaurant) throw new BadRequestError('Restaurant not found');
 
+        const menuExist = await prisma.menu.findFirst({
+            where: {
+                name,
+                restaurantId: restaurant.id
+            }
+        });
+
+        if (menuExist) throw new BadRequestError('Menu already exist');
+
         const menu = await prisma.menu.create({
             data: {
                 name,
-                restaurantId: restaurant.id
+                restaurantId: restaurant.id,
+                menuPrice: Number(menuPrice),
+                Foods: {
+                    connect: foods.map((food: any) => ({ id: food.id }))
+                }
             }
         });
 
@@ -625,9 +630,6 @@ export const getRestaurantOrder = async (req: Request, res: Response) => {
         const order = await prisma.order.findUnique({
             where: {
                 id: Number(orderId)
-            },
-            include: {
-                Foods: true
             }
         })
 
@@ -635,6 +637,33 @@ export const getRestaurantOrder = async (req: Request, res: Response) => {
         if (order.restaurantId !== Number(restaurantId)) throw new NotAuthorizedError();
 
         res.status(200).json({ success: true, data: order })
+
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
+    }
+}
+
+export const getAverageRating = async (req: Request, res: Response) => {
+    try {
+        const { restaurantId } = req.params;
+
+        const restaurant = await prisma.restaurant.findUnique({
+            where: {
+                id: Number(restaurantId)
+            },
+            include: {
+                Ratings: true
+            }
+        })
+
+        if (!restaurant) throw new BadRequestError('Restaurant not found');
+
+        const averageRating = restaurant.Ratings.reduce((acc, rating) => acc + rating.rating, 0) / restaurant.Ratings.length;
+
+        res.status(200).json({ success: true, data: averageRating })
 
     } catch (e) {
         let message;

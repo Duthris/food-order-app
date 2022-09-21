@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon --transpile-only --files src/app.ts",
+    "start": "nodemon --transpile-only -L --files src/app.ts",
     "dev": "nodemon src/app.ts",
     "db:migrate": "npx prisma migrate dev init && yarn prisma generate",
     "db:push": "npx prisma db push",
@@ -21,6 +21,7 @@
     "bcrypt": "^5.0.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.0",
+    "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^16.0.1",
     "email-verification-code": "^2.0.4",

@@ -1,0 +1,40 @@
+version: '3.4'
+services:
+  server:
+    container_name: food-order-server
+    env_file:
+      - ./server/.env
+    volumes:
+      - ./server/:/usr/src/app
+    restart: always
+    build:
+      context: ./server
+      dockerfile: Dockerfile 
+    ports:
+      - 4000:${API_PORT}
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - '54320:5432'
+    volumes: 
+      - pgdata:/var/lib/postgresql/data
+
+  client:
+    container_name: food-order-client
+    env_file:
+      - ./client/.env
+    volumes:
+      - ./client/:/usr/src/app
+    restart: always
+    build:
+      context: ./client
+      dockerfile: Dockerfile 
+    ports:
+      - 3000:${CLIENT_PORT}
+
+volumes:
+  pgdata:

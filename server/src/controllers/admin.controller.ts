@@ -169,7 +169,7 @@ export const verifyRestaurant = async (req: Request, res: Response) => {
 
 export const createCategory = async (req: Request, res: Response) => {
     try {
-        const { name } = req.body;
+        const { name, photo } = req.body;
 
         const categoryExist = await prisma.category.findUnique({
             where: {
@@ -182,6 +182,7 @@ export const createCategory = async (req: Request, res: Response) => {
         const category = await prisma.category.create({
             data: {
                 name,
+                photo
             }
         });
         return res.status(200).json({ success: true, data: { category } });
@@ -196,7 +197,7 @@ export const createCategory = async (req: Request, res: Response) => {
 export const updateCategory = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { name } = req.body;
+        const { name, photo } = req.body;
 
         const category = await prisma.category.findUnique({
             where: {

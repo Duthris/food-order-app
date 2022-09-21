@@ -4,7 +4,7 @@ import {
     getUsers,getUser, userRegister, userLogin, updateUser, updateUserPassword, 
     deleteUser, verifyUser, userForgotPassword, addAddress, getAddress, getAddresses,
     updateAddress, deleteAddress, getVoucher, getVouchers, addRatingToRetaurantForCompletedOrder,
-    getRatingsForRestaurant
+    getRatingsForRestaurant, getRestaurants, getRestaurantsByTheirFoodsCategories
 } from '../controllers/user.controller';
 import { validateRequest } from '../middlewares/validate.request';
 import { isAuthenticated } from '../middlewares/is.authenticated';
@@ -27,13 +27,15 @@ router.put('/update-password', isAuthenticated, validateRequest, updateUserPassw
 router.delete('/delete-account', isAuthenticated, validateRequest, deleteUser);
 router.post('/forgot-password', userForgotPassword);
 router.post('/add-address', isAuthenticated, validateRequest, addAddress);
-router.get('/addresses/:id', isAuthenticated, getAddress);
+router.get('/addresses/:id', isAuthenticated, getAddress); 
 router.get('/addresses', isAuthenticated, getAddresses);
 router.put('/update-address', isAuthenticated, validateRequest, updateAddress);
 router.delete('/delete-address', isAuthenticated, validateRequest, deleteAddress);
-router.get('/vouchers/:id', getVoucher);
+router.get('/voucher/:id', getVoucher);
 router.get('/vouchers', getVouchers);
 router.get('/ratings/:id', getRatingsForRestaurant);
 router.post('/orders/:id/add-rating', isAuthenticated, validateRequest, addRatingToRetaurantForCompletedOrder);
+router.get('/restaurants', getRestaurants);
+router.get('/restaurants/:categoryId', getRestaurantsByTheirFoodsCategories);
 
 export default router;

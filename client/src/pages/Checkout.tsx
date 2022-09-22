@@ -30,6 +30,7 @@ import { Typography, List } from '@mui/material';
 import moment from 'moment';
 import { CircularProgress } from '@mui/material';
 import { removeVoucher } from "../redux/actionCreators/removeVoucher";
+import { removeItemsFromStorage } from "../utils";
 
 export default function Checkout() {
     const dispatch = useAppDispatch();
@@ -134,8 +135,7 @@ export default function Checkout() {
         if (basket?.data?.Foods?.length === 0 && basket?.data?.Menus?.length === 0) {
             setCode('');
             setIsVoucherApplied(false);
-            localStorage.removeItem('VOUCHER_CODE');
-            localStorage.removeItem('isVoucherApplied');
+            removeItemsFromStorage(['VOUCHER_CODE', 'VOUCHER_NAME', 'isVoucherApplied']);
         }   
     }, [basket?.data?.Foods?.length, basket?.data?.Menus?.length, basket])
 

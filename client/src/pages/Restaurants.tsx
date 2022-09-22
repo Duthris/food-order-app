@@ -7,6 +7,7 @@ import Restaurant from "../components/Restaurant";
 import { CircularProgress } from "@mui/material";
 import { Carousel } from "primereact/carousel";
 import '../assets/carousel.css'
+import { carouselResponsiveOptions } from "../assets/carouselResponsiveOptions";
 
 export default function Restaurants() {
     const dispatch = useAppDispatch();
@@ -47,7 +48,7 @@ export default function Restaurants() {
                         value={restaurants?.data}
                         numVisible={5}
                         numScroll={2}
-                        responsiveOptions={responsiveOptions}
+                        responsiveOptions={carouselResponsiveOptions}
                         itemTemplate={restaurant => (
                             <Restaurant restaurant={restaurant} />
                         )}

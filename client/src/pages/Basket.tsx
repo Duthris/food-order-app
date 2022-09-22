@@ -1,5 +1,5 @@
-import { useAppDispatch, useAppSelector } from "../hooks/hooks";
-import { useEffect, Fragment } from "react";
+import { useAppDispatch } from "../hooks/hooks";
+import { Fragment } from "react";
 import { Grid } from "@mui/material";
 import { getUserBasket } from './../redux/actionCreators/getUserBasket';
 import { Divider } from "primereact/divider";
@@ -14,22 +14,17 @@ import { IconButton } from "@mui/material";
 import { removeFoodFromBasket } from "../redux/actionCreators/removeFoodFromBasket";
 import { removeMenuFromBasket } from "../redux/actionCreators/removeMenuFromBasket";
 import { CircularProgress } from "@mui/material";
+import { useBasket } from "../hooks/useBasket";
+import { removeItemsFromStorage } from "../utils";
 
 export default function Basket() {
-    const dispatch = useAppDispatch();
-    const { loading, basket } = useAppSelector((state) => state.basket) as any
     const navigate = useNavigate();
-
-    useEffect(() => {
-        dispatch(getUserBasket());
-    }, [dispatch]);
+    const dispatch = useAppDispatch();
+    const data = useBasket();
 
     const handleResetBasket = async () => {
         await dispatch(resetBasket());
-        localStorage.removeItem('BASKET_FOODS');
-        localStorage.removeItem('BASKET_MENUS');
-        localStorage.removeItem('VOUCHER_CODE');
-        localStorage.removeItem('isVoucherApplied');
+        removeItemsFromStorage(['BASKET_FOODS', 'BASKET_MENUS', 'VOUCHER_CODE', 'isVoucherApplied']);
         await dispatch(getUserBasket());
     }
 
@@ -51,12 +46,12 @@ export default function Basket() {
 
     return (
         <Grid item style={{display: 'flex'}}>
-            {loading && <CircularProgress sx={{ color: 'red' }}/>}
-            {basket.data &&
+            {data?.loading && <CircularProgress sx={{ color: 'red' }}/>}
+            {data?.basket?.data &&
                 (
                     <Grid item xs={6} sm={4} md={4} lg={2}>
-                        {basket.data?.Foods?.length === 0 && basket.data?.Menus?.length === 0 && <> <p style={{ color: 'red', fontWeight: 'lighter' }}>Basket is empty</p> <Divider /> </>}
-                        {basket.data?.Foods?.map((food: any) => {
+                        {data?.basket?.data?.Foods?.length === 0 && data?.basket?.data?.Menus?.length === 0 && <> <p style={{ color: 'red', fontWeight: 'lighter' }}>Basket is empty</p> <Divider /> </>}
+                        {data?.basket.data?.Foods?.map((food: any) => {
                             return (
                                 <Fragment key={food.id}>
                                 <Card sx={{ maxWidth: 345 }}>
@@ -84,7 +79,7 @@ export default function Basket() {
                                 </Fragment>
                             )
                         })}
-                        {basket.data?.Menus?.map((menu: any) => {
+                        {data?.basket?.data?.Menus?.map((menu: any) => {
                             return (
                                 <Fragment key={menu?.id}>
                                 <Card sx={{ maxWidth: 345 }}>
@@ -112,21 +107,21 @@ export default function Basket() {
                                 </Fragment>
                             )
                         })}
-                        <p style={{ color: 'red', fontWeight: 'bold' }}>Total Amount {'\t\t\t\t$' + basket.data?.amount}</p>
+                        <p style={{ color: 'red', fontWeight: 'bold' }}>Total Amount {'\t\t\t\t$' + data?.basket?.data?.amount}</p>
 
                         <Divider />
                         <ButtonGroup color='secondary' variant="outlined" aria-label="small outlined button group">
                         <Button 
-                        onClick={() => navigate('/checkout')}
-                        startIcon={<PaymentIcon />}
-                        disabled={basket?.data?.Foods?.length === 0 && basket?.data?.Menus?.length === 0}
-                        >Checkout
+                            onClick={() => navigate('/checkout')}
+                            startIcon={<PaymentIcon />}
+                            disabled={data?.basket?.data?.Foods?.length === 0 && data?.basket?.data?.Menus?.length === 0}
+                            >Checkout
                         </Button>
                         <Button
-                        onClick={() => handleResetBasket()}
-                        disabled={basket?.data?.Foods?.length === 0 && basket?.data?.Menus?.length === 0}
-                        endIcon={<DeleteForeverIcon />}
-                        >Reset Basket
+                            onClick={() => handleResetBasket()}
+                            disabled={data?.basket?.data?.Foods?.length === 0 && data?.basket?.data?.Menus?.length === 0}
+                            endIcon={<DeleteForeverIcon />}
+                            >Reset Basket
                         </Button>
                         </ButtonGroup>
                         <Divider />

@@ -10,6 +10,7 @@ import { Chip, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import IconButton, { IconButtonProps } from '@mui/material/IconButton';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { carouselResponsiveOptions } from "../assets/carouselResponsiveOptions";
 
 interface ExpandMoreProps extends IconButtonProps {
     expand: boolean;
@@ -73,24 +74,6 @@ export default function Orders() {
         dispatch(getUserOrders());
     }, [dispatch]);
 
-    
-    const responsiveOptions = [
-        {
-            breakpoint: '1024px',
-            numVisible: 3,
-            numScroll: 3
-        },
-        {
-            breakpoint: '768px',
-            numVisible: 2,
-            numScroll: 2
-        },
-        {
-            breakpoint: '560px',
-            numVisible: 1,
-            numScroll: 1
-        }
-    ];
 
     const ordersTemplate = (order: any) => (
         <Fragment key={order?.id}>
@@ -133,7 +116,7 @@ export default function Orders() {
                 </CardActions>
                 <Collapse in={expands[order?.id]} unmountOnExit>
                     <CardContent>
-                        <Carousel value={order?.Menus && order?.Foods} numVisible={1} numScroll={1} responsiveOptions={responsiveOptions} circular={true} autoplayInterval={3000}>
+                        <Carousel value={order?.Menus && order?.Foods} numVisible={1} numScroll={1} responsiveOptions={carouselResponsiveOptions} circular={true} autoplayInterval={3000}>
                             {order?.Menus?.map((menu: any) => (
                                 <div key={menu?.id}>
                                     <p>{menu?.name}</p>
@@ -166,7 +149,7 @@ export default function Orders() {
                                 value={activeOrders}
                                 numVisible={4}
                                 numScroll={2}
-                                responsiveOptions={responsiveOptions}
+                                responsiveOptions={carouselResponsiveOptions}
                                 itemTemplate={ordersTemplate}
                             />
 
@@ -178,7 +161,7 @@ export default function Orders() {
                                 value={completedOrders}
                                 numVisible={4}
                                 numScroll={2}
-                                responsiveOptions={responsiveOptions}
+                                responsiveOptions={carouselResponsiveOptions}
                                 itemTemplate={ordersTemplate}
                             />
 
@@ -190,7 +173,7 @@ export default function Orders() {
                                 value={cancelledOrders}
                                 numVisible={4}
                                 numScroll={2}
-                                responsiveOptions={responsiveOptions}
+                                responsiveOptions={carouselResponsiveOptions}
                                 itemTemplate={ordersTemplate}
                             />
 

@@ -22,6 +22,7 @@ services:
       - '54320:5432'
     volumes: 
       - pgdata:/var/lib/postgresql/data
+    restart: always
 
   client:
     container_name: food-order-client

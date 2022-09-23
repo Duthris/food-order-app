@@ -48,6 +48,8 @@ export default function Orders() {
     const completedOrders = orders?.data?.filter((order: any) => order.status === 'completed');
     const cancelledOrders = orders?.data?.filter((order: any) => order.status === 'rejected');
 
+    console.log(cancelledOrders, 'asd')
+
     const orderStatus = (status: any) => {
         switch(status) {
             case 'pending':
@@ -74,8 +76,36 @@ export default function Orders() {
         dispatch(getUserOrders());
     }, [dispatch]);
 
+    const collapseItemTemplateForMenusAndFoods = (item: any) => {
+        return (
+            <div className="p-col-12 p-md-6 p-lg-4">
+                <Card sx={{ maxWidth: 345, height: 250, width: 200 }}>
+                    <CardHeader
+                        title={item.name}
+                        subheader={item.price ? "$" + item.price : "$" + item.menuPrice }
+                    />
+                    <CardMedia
+                        component="img"
+                        height="194"
+                        image={item.photo}
+                        alt={item.name}
+                        style={{ width: 150, height: 100, marginLeft: 15 }}
+                    />
+                    <CardContent>
+                        <Typography variant="body2" color="text.secondary">
+                            {item.description}
+                        </Typography>
+                    </CardContent>
+                </Card>
+            </div>
+        )
+    }
 
-    const ordersTemplate = (order: any) => (
+
+    const ordersTemplate = (order: any) => {
+        const array = [...order?.Menus, ...order?.Foods];
+        return (
+        
         <Fragment key={order?.id}>
             <Card
             >
@@ -115,26 +145,17 @@ export default function Orders() {
 
                 </CardActions>
                 <Collapse in={expands[order?.id]} unmountOnExit>
-                    <CardContent>
-                        <Carousel value={order?.Menus && order?.Foods} numVisible={1} numScroll={1} responsiveOptions={carouselResponsiveOptions} circular={true} autoplayInterval={3000}>
-                            {order?.Menus?.map((menu: any) => (
-                                <div key={menu?.id}>
-                                    <p>{menu?.name}</p>
-                                    <img src={menu?.photo} alt={menu?.name} style={{ width: '100%', height: '100%' }} />
-                                </div>
-                            ))}
-                            {order?.Foods?.map((food: any) => (
-                                <div key={food?.id}>
-                                    <p>{food?.name}</p>
-                                    <img src={food?.photo} alt={food?.name} style={{ width: '100%', height: '100%' }} />
-                                </div>
-                            ))}
-                        </Carousel>
-                    </CardContent>
+                <Carousel 
+                    value={array} 
+                    numVisible={1} 
+                    numScroll={1} 
+                    itemTemplate={collapseItemTemplateForMenusAndFoods}
+                    style={{ height: 300, width: 300, marginLeft: 45 }}
+                />
                 </Collapse>
             </Card>
         </Fragment>
-    )
+    )}
 
     return (
         <div className="container mx-auto items-center h-screen mt-10">

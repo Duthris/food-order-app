@@ -12,8 +12,6 @@
   - Restaurant View,
   - Admin View,
   - User profile operations and verifications.
-  - A few task on orders page.
-  - Rating completed orders by users.
   - Routes will be edited when all roles are in a working flow.
 
 

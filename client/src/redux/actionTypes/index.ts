@@ -1,6 +1,6 @@
 import { Admin, Login, Restaurant, Register, Category, Menu, Voucher, 
     Basket, Order, AddFoodToBasket, RemoveFoodFromBasket, AddMenuFoodsToBasket, ResetBasket, Food,
-    RemoveMenu, Address, BasketToOrder, AddAddress, ApplyVoucher, RemoveVoucher
+    RemoveMenu, Address, BasketToOrder, AddAddress, ApplyVoucher, RemoveVoucher, AddRating
 } from '../reducers/index';
 
 export enum ActionType {
@@ -67,6 +67,9 @@ export enum ActionType {
     REMOVE_VOUCHER_PENDING = 'REMOVE_VOUCHER_PENDING',
     REMOVE_VOUCHER_SUCCESS = 'REMOVE_VOUCHER_SUCCESS',
     REMOVE_VOUCHER_FAIL = 'REMOVE_VOUCHER_FAIL',
+    ADD_RATING_PENDING = 'ADD_RATING_PENDING',
+    ADD_RATING_SUCCESS = 'ADD_RATING_SUCCESS',
+    ADD_RATING_FAIL = 'ADD_RATING_FAIL',
 }
 
 interface actionPending {
@@ -363,6 +366,19 @@ interface actionRemoveVoucherFail {
     payload: string;
 }
 
+interface actionAddRatingPending {
+    type: ActionType.ADD_RATING_PENDING;
+}
+
+interface actionAddRatingSuccess {
+    type: ActionType.ADD_RATING_SUCCESS;
+    payload: AddRating;
+}
+
+interface actionAddRatingFail {
+    type: ActionType.ADD_RATING_FAIL;
+    payload: string;
+}
 
 
 export type Action = actionPending | actionSuccess | actionFail | 
@@ -385,4 +401,5 @@ export type Action = actionPending | actionSuccess | actionFail |
                     actionConvertBasketToOrderPending | actionConvertBasketToOrderSuccess | actionConvertBasketToOrderFail |
                     actionAddAddressPending | actionAddAddressSuccess | actionAddAddressFail |
                     actionApplyVoucherPending | actionApplyVoucherSuccess | actionApplyVoucherFail |
-                    actionRemoveVoucherPending | actionRemoveVoucherSuccess | actionRemoveVoucherFail;
+                    actionRemoveVoucherPending | actionRemoveVoucherSuccess | actionRemoveVoucherFail |
+                    actionAddRatingPending | actionAddRatingSuccess | actionAddRatingFail;

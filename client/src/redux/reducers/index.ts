@@ -440,6 +440,30 @@ const initialStateRemoveVoucher: RemoveVoucherState = {
     error: null,
 };
 
+export interface AddRating {
+    userId: number;
+    id: number;
+    rating: number;
+    review: string;
+}
+
+interface AddRatingState {
+    loading: boolean;
+    addRating: AddRating;
+    error: string | null;
+}
+
+const initialStateAddRating: AddRatingState = {
+    loading: false,
+    addRating: {
+        userId: 0,
+        id: 0,
+        rating: 0,
+        review: '',
+    },
+    error: null,
+};
+
 export const adminReducer = (state: State = initialState, action: Action): State => {
     switch (action.type) {
         case ActionType.GET_ADMINS_PENDING:
@@ -935,6 +959,30 @@ export const removeVoucherReducer = (state: RemoveVoucherState = initialStateRem
                 error: null,
             };
         case ActionType.REMOVE_VOUCHER_FAIL:
+            return {
+                ...state,
+                loading: false,
+                error: action.payload,
+            };
+        default:
+            return state;
+    }
+}
+
+export const addRatingReducer = (state: AddRatingState = initialStateAddRating, action: Action): AddRatingState => {
+    switch (action.type) {
+        case ActionType.ADD_RATING_PENDING:
+            return {
+                ...state,
+                loading: true,
+            };
+        case ActionType.ADD_RATING_SUCCESS:
+            return {
+                loading: false,
+                addRating: action.payload,
+                error: null,
+            };
+        case ActionType.ADD_RATING_FAIL:
             return {
                 ...state,
                 loading: false,

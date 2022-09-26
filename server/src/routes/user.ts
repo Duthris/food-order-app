@@ -34,7 +34,7 @@ router.delete('/delete-address', isAuthenticated, validateRequest, deleteAddress
 router.get('/voucher/:id', getVoucher);
 router.get('/vouchers', getVouchers);
 router.get('/ratings/:id', getRatingsForRestaurant);
-router.post('/orders/:id/add-rating', isAuthenticated, validateRequest, addRatingToRetaurantForCompletedOrder);
+router.post('/orders/add-rating', isAuthenticated, validateRequest, addRatingToRetaurantForCompletedOrder);
 router.get('/restaurants', getRestaurants);
 router.get('/restaurants/:categoryId', getRestaurantsByTheirFoodsCategories);
 

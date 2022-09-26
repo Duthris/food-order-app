@@ -4,7 +4,7 @@ import { adminReducer, loginReducer, restaurantReducer,
     menuReducer, voucherReducer, basketReducer, orderReducer, 
     addFoodToBasketReducer, removeFoodFromBasketReducer, addMenuFoodsToBasketReducer,
     resetBasketReducer, removeMenuFromBasketReducer, getRestaurantFoodsReducer, getUserAddressesReducer,
-    convertBasketToOrderReducer, addAddressReducer, applyVoucherReducer
+    convertBasketToOrderReducer, addAddressReducer, applyVoucherReducer, addRatingReducer
 } from './index';
 
 const reducers = combineReducers({
@@ -27,7 +27,8 @@ const reducers = combineReducers({
     userAddresses: getUserAddressesReducer,
     convertBasketToOrder: convertBasketToOrderReducer,
     addAddress: addAddressReducer,
-    applyVoucher: applyVoucherReducer
+    applyVoucher: applyVoucherReducer,
+    addRating: addRatingReducer
 });
 
 export default reducers;

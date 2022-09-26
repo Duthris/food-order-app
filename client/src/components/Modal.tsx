@@ -2,7 +2,6 @@ import { Dialog, Transition } from '@headlessui/react'
 import { Fragment } from 'react'
 import { Button } from "@mui/material";
 
-
 export default function Modal({ openModal, closeModal, isOpen, children, title, openButtonText, button, startIcon }: any) {
     return (
         <>

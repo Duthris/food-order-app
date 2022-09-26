@@ -209,8 +209,8 @@ return (
             onClose={handleCloseUserMenu}
         >
             {options.map((option) => (
-            <Link to={option.href}>
-                <MenuItem key={option.name} onClick={handleCloseUserMenu}>
+            <Link key={option.name} to={option.href}>
+                <MenuItem onClick={handleCloseUserMenu}>
                     <Typography style={{ color: 'red' }} textAlign="center">{option.name}</Typography>
                 </MenuItem>
             </Link>

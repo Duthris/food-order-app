@@ -522,13 +522,12 @@ export const getVoucher = async (req: Request, res: Response) => {
 
 export const addRatingToRetaurantForCompletedOrder = async (req: Request, res: Response) => {
     try {
-        const { rating, review } = req.body;
-        const { id } = req.params;
+        const { rating, review, orderId } = req.body;
         const userId = getIdFromToken(req);
 
         const order = await prisma.order.findFirst({
             where: {
-                id: Number(id),
+                id: Number(orderId),
                 userId: Number(userId)
             }
         })        
@@ -537,19 +536,11 @@ export const addRatingToRetaurantForCompletedOrder = async (req: Request, res: R
 
         if (order.status !== OrderStatus.completed) throw new BadRequestError('You can only rate a restaurant after the order is completed');
 
-        const restaurant = await prisma.restaurant.findFirst({
-            where: {
-                id: order.restaurantId
-            }
-        })
-
-        if (!restaurant) throw new BadRequestError('Restaurant not found');
-
         const newRating = await prisma.rating.create({
             data: {
                 rating,
                 review,
-                restaurantId: restaurant.id,
+                restaurantId: order.restaurantId,
                 userId: userId,
                 orderId: order.id
             }

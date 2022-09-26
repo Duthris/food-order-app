@@ -120,6 +120,7 @@ export const getOrders = async (req: Request, res: Response) => {
             Restaurant: true,
             Menus: true,
             Foods: true,
+            Ratings: true,
         },
         orderBy: {
             createdAt: 'desc'

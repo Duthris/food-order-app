@@ -11,6 +11,13 @@ import { styled } from '@mui/material/styles';
 import IconButton, { IconButtonProps } from '@mui/material/IconButton';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { carouselResponsiveOptions } from "../assets/carouselResponsiveOptions";
+import Modal from '../components/Modal'
+import AddCommentIcon from '@mui/icons-material/AddComment';
+import { Rating } from '@mui/material';
+import { TextField } from '@mui/material';
+import { Box } from '@mui/system';
+import { Button } from '@mui/material';
+import { addRating } from "../redux/actionCreators/addRating";
 
 interface ExpandMoreProps extends IconButtonProps {
     expand: boolean;
@@ -31,9 +38,16 @@ return <IconButton {...other} />;
 export default function Orders() {
     const dispatch = useAppDispatch();
     const { orders, loading } = useAppSelector((state) => state.orders) as any;
-
     const [expands, setExpands] = useState([]);
-
+    const [isAddRatingModalOpen, setIsAddRatingModalOpen] = useState(false);
+    const [rating, setRating] = useState<number | null>(0);
+    const [review, setReview] = useState('');
+    const [orderId, setOrderId] = useState<number | null>(null);
+    
+    const activeOrders = orders?.data?.filter((order: any) => order.status !== 'completed' && order.status !== 'rejected');
+    const completedOrders = orders?.data?.filter((order: any) => order.status === 'completed');
+    const cancelledOrders = orders?.data?.filter((order: any) => order.status === 'rejected');
+    
     useEffect(() => {
         orders?.data?.forEach((order: any) => {
             setExpands((prev: any) => ({ ...prev, [order.id]: false }));
@@ -44,11 +58,12 @@ export default function Orders() {
         setExpands((prev: any) => ({ ...prev, [id]: !prev[id] }));
     };
 
-    const activeOrders = orders?.data?.filter((order: any) => order.status !== 'completed' && order.status !== 'rejected');
-    const completedOrders = orders?.data?.filter((order: any) => order.status === 'completed');
-    const cancelledOrders = orders?.data?.filter((order: any) => order.status === 'rejected');
+    const openAddRatingModal = (id: any) => { 
+        setOrderId(id);
+        setIsAddRatingModalOpen(true)
+    }
 
-    console.log(cancelledOrders, 'asd')
+    const closeAddRatingModal = () => { setIsAddRatingModalOpen(false) }
 
     const orderStatus = (status: any) => {
         switch(status) {
@@ -71,10 +86,85 @@ export default function Orders() {
         }
     }
 
+    const labels: { [index: string]: string } = {
+        1: '1',
+        2: '2',
+        3: '3',
+        4: '4',
+        5: '5',
+    };
+
+    const [hover, setHover] = useState(-1);
+
+
+    function getLabelText(value: number) {
+        return `${value} Star${value !== 1 ? 's' : ''}, ${labels[value]}`;
+    }
+
+    const handleRatingSubmit = async (rating: number, review: string, orderId: number) => {
+        console.log(rating);
+        console.log(review);
+        console.log(orderId);
+        const data = {
+            rating: rating,
+            review: review,
+            orderId: orderId
+        }
+        await dispatch(addRating(data));
+        closeAddRatingModal();
+        setRating(0);
+        setReview('');
+        setOrderId(null);
+        window.location.reload();
+    }
+
+    const addRatingChildren = (orderId: number) => (
+        <Fragment>
+            <h1 style={{ color: 'red' }}>Add Rating</h1>
+            <Divider />
+            <TextField
+                id="outlined-multiline-static"
+                label="Review"
+                multiline
+                rows={4}
+                defaultValue=""
+                variant="outlined"
+                color='secondary'
+                style={{ width: '100%', marginTop: 10 }}
+                onChange={(e) => setReview(e.target.value)}
+            />
+            <Rating
+                name="simple-controlled"
+                value={rating}
+                onChange={(event, newValue) => {
+                    setRating(newValue)
+                }}
+                getLabelText={getLabelText}
+                onChangeActive={(event, newHover) => {
+                    setHover(newHover);
+                }}
+                style={{ marginTop: 10}}
+            />
+            {rating !== null && (
+            <Box sx={{ ml: 2 }}>{labels[hover !== -1 ? hover : rating]}</Box>
+            )}
+            <Button
+                variant="outlined"
+                color="secondary"
+                style={{ marginTop: 10 }}
+                onClick={() => handleRatingSubmit(Number(rating), review, orderId)}
+            >
+                Send
+            </Button>
+        </Fragment>
+    )
+
 
     useEffect(() => {
         dispatch(getUserOrders());
     }, [dispatch]);
+
+
 
     const collapseItemTemplateForMenusAndFoods = (item: any) => {
         return (
@@ -105,7 +195,6 @@ export default function Orders() {
     const ordersTemplate = (order: any) => {
         const array = [...order?.Menus, ...order?.Foods];
         return (
-        
         <Fragment key={order?.id}>
             <Card
             >
@@ -133,7 +222,38 @@ export default function Orders() {
                     ${order?.amount}
                 </Typography>
                 </CardContent>
-                <CardActions disableSpacing>                
+                <CardActions disableSpacing>
+                {order?.status === 'completed' && order?.Ratings?.length === 0 && 
+                <Modal 
+                        openModal={() => openAddRatingModal(order?.id)} 
+                        closeModal={closeAddRatingModal} 
+                        isOpen={isAddRatingModalOpen} 
+                        children={addRatingChildren(orderId!)} 
+                        openButtonText="Add Review"
+                        startIcon={<AddCommentIcon />}
+                    /> 
+                }
+                {order?.status === 'completed' && order?.Ratings?.length > 0 &&
+                    <span style={{ marginTop: -15 }}>
+                        <Typography style={{ color: 'green', fontWeight: 'bold' }} align='center'>
+                            Rated 
+                        </Typography>
+                        <Rating name="read-only" value={order?.Ratings[0]?.rating} readOnly />
+                        {expands[order?.id] && 
+                        <>
+                            <Divider />
+                            <div className="flex">
+                            <h1 style={{ marginTop: 15, color: '#A52A2A', fontWeight: 'bold' }}>Review</h1>
+                            <Divider layout='vertical' />
+                            <Typography className='break-all' style={{ marginTop: 15, color: '#808080', fontWeight: 'lighter' }} align='center'>
+                                {order?.Ratings[0]?.review}
+                            </Typography>
+                            </div>
+                            <Divider />
+                        </>
+                        }
+                    </span>
+                }
                     <ExpandMore
                         expand={expands[order?.id]}
                         onClick={() => handleExpandClick(order?.id)}
@@ -142,7 +262,6 @@ export default function Orders() {
                     >
                         <ExpandMoreIcon style={{ color: 'red' }} />
                     </ExpandMore>
-
                 </CardActions>
                 <Collapse in={expands[order?.id]} unmountOnExit>
                 <Carousel 
